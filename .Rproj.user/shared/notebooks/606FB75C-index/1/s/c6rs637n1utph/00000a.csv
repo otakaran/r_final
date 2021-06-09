@@ -1,1 +1,2 @@
-"0","dataset <- read.csv(here::here(""data"", ""all-ages.csv""))"
+"0","dataset <- read.csv(here::here(""data"", ""all-ages.csv"")) %>%"
+"0","  mutate(Major_category = as.factor(Major_category))"

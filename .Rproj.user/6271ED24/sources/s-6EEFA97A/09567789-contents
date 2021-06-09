@@ -7,21 +7,23 @@ tags: ["R Markdown", "plot", "regression"]
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(collapse = TRUE)
+knitr::opts_chunk$set(collapse = TRUE, echo = FALSE)
 library(knitr)
 library(rmdformats)
 library(tidyverse)
 library(broom)
+library(car)
 ```
 
 # Introduction
 
 The purpose of this analysis is to understand employment trends by major.
 
-The data-set selected is available online <https://www.kaggle.com/tunguz/college-majors?select=all-ages.csv>. We will be looking into the all-ages.csv file which shows employment information for all college graduates, regardless of age from the US census. This data was used in a [FiveThirtyEight article](https://fivethirtyeight.com/features/the-economic-guide-to-picking-a-college-major/).
+The data-set selected is [available online] (https://www.kaggle.com/tunguz/college-majors?select=all-ages.csv). We will be looking into the all-ages.csv file which shows employment information for all college graduates, regardless of age from the US census. This data was used in a [FiveThirtyEight article](https://fivethirtyeight.com/features/the-economic-guide-to-picking-a-college-major/).
 
 ```{r}
-dataset <- read.csv(here::here("data", "all-ages.csv"))
+dataset <- read.csv(here::here("data", "all-ages.csv")) %>%
+  mutate(Major_category = as.factor(Major_category))
 ```
 
 The dataset was imported locally and is some summary information to get acquainted with the data. The first column contains the exact name of the major, the second column contains 16 major "categories" which will be used thought this analysis. The categories are:
@@ -57,28 +59,69 @@ dataset %>%
 ```
 Now this plot tells us much more. Immediately I notice the wide spread, and significantly skewed low employment in the education major category. 
 
-Next I want to look at a few majors individually and see how the employment distributes. 
+Let's also take a look at how employment is distributed across all majors and categories.
 
 ```{r}
 dataset %>%
   ggplot(aes(pct_employed)) + geom_histogram()
 ```
 
+The chart appears to be mostly normal with a very slight right skew. Now lets also take a look at the distributions of employment percentage for Major Categories. 
 
-## Major Category VS Employment Rate
+```{r}
+dataset %>%
+  filter(Major_category == "Education") %>%
+  ggplot(aes(pct_employed)) + geom_histogram(bins = 9)
+  
+dataset %>%
+  filter(Major_category == "Engineering") %>%
+  ggplot(aes(pct_employed)) + geom_histogram(bins = 9)
+```
 
-
-
-## Major Category VS Median Income
-
-
-# Data Vizulization
-
+We can tell these samples for individual major categories are quite small, so any statistical analysis we do will need to be done cautiously. This being said, with the small samples they appear to follow a very normal pattern.
 
 
 # Does Employment Vary by Major?
 
+Now that we have a good understanding of our dataset it is now time to do some proper statistical testing on the dataset. We wish to confirm 
+
+## Assumptions
+
+The ANOVA test assumes that the data are normally distributed and the variance across groups are homogeneous.
+
+We assume that the data overall and in its categories is approximately normally distributed from the plots we observed earlier.
+
+To check for varience between groups we can use Levene’s test.
+
+```{r}
+dataset %>%
+  leveneTest(pct_employed ~ Major_category, data = .)
+```
+From the output above we can see that the p-value is not less than the significance level of 0.05. This means that there is no evidence to suggest that the variance across groups is statistically significantly different. Therefore, we can assume the homogeneity of variances in the major category groups.
 
 
+## ANOVA Test
+
+```{r}
+anova_result <- dataset %>%
+  aov(pct_employed ~ Major_category, data = .)
+
+summary(anova_result)
+```
+
+We can see from the results of our One-way ANOVA test that p-value (4.03e-08) is smaller than the significance level and we can reject the null hypothesis. We accept the alternative hypothesis that there is a difference between the means of employment percentage and major category. 
+
+## Tukey Test
+
+We can further find the category means which differ the most that lead to a small ANOVA p-value.
+
+```{r}
+turkey_result <- tidy(TukeyHSD(anova_result))
+turkey_result %>%
+  filter(adj.p.value <= .05) %>%
+  select(contrast, estimate, conf.low, conf.high, adj.p.value)
+```
 
 # Conclusion
+
+Given all of the plots and the ANOVA test we can confidentially say that the percentage of graduates who are employed does depend on Major Category. 

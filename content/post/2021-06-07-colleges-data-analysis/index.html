@@ -12,21 +12,19 @@ tags: ["R Markdown", "plot", "regression"]
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
 <p>The purpose of this analysis is to understand employment trends by major.</p>
-<p>The data-set selected is available online <a href="https://www.kaggle.com/tunguz/college-majors?select=all-ages.csv" class="uri">https://www.kaggle.com/tunguz/college-majors?select=all-ages.csv</a>. We will be looking into the all-ages.csv file which shows employment information for all college graduates, regardless of age from the US census. This data was used in a <a href="https://fivethirtyeight.com/features/the-economic-guide-to-picking-a-college-major/">FiveThirtyEight article</a>.</p>
-<pre class="r"><code>dataset &lt;- read.csv(here::here(&quot;data&quot;, &quot;all-ages.csv&quot;))</code></pre>
+<p>The data-set selected is [available online] (<a href="https://www.kaggle.com/tunguz/college-majors?select=all-ages.csv" class="uri">https://www.kaggle.com/tunguz/college-majors?select=all-ages.csv</a>). We will be looking into the all-ages.csv file which shows employment information for all college graduates, regardless of age from the US census. This data was used in a <a href="https://fivethirtyeight.com/features/the-economic-guide-to-picking-a-college-major/">FiveThirtyEight article</a>.</p>
 <p>The dataset was imported locally and is some summary information to get acquainted with the data. The first column contains the exact name of the major, the second column contains 16 major “categories” which will be used thought this analysis. The categories are:</p>
-<pre class="r"><code>unique(dataset$Major_category)
-##  [1] &quot;Agriculture &amp; Natural Resources&quot;     &quot;Biology &amp; Life Science&quot;             
-##  [3] &quot;Engineering&quot;                         &quot;Humanities &amp; Liberal Arts&quot;          
-##  [5] &quot;Communications &amp; Journalism&quot;         &quot;Computers &amp; Mathematics&quot;            
-##  [7] &quot;Industrial Arts &amp; Consumer Services&quot; &quot;Education&quot;                          
-##  [9] &quot;Law &amp; Public Policy&quot;                 &quot;Interdisciplinary&quot;                  
-## [11] &quot;Health&quot;                              &quot;Social Science&quot;                     
-## [13] &quot;Physical Sciences&quot;                   &quot;Psychology &amp; Social Work&quot;           
-## [15] &quot;Arts&quot;                                &quot;Business&quot;</code></pre>
+<pre><code>##  [1] Agriculture &amp; Natural Resources     Biology &amp; Life Science             
+##  [3] Engineering                         Humanities &amp; Liberal Arts          
+##  [5] Communications &amp; Journalism         Computers &amp; Mathematics            
+##  [7] Industrial Arts &amp; Consumer Services Education                          
+##  [9] Law &amp; Public Policy                 Interdisciplinary                  
+## [11] Health                              Social Science                     
+## [13] Physical Sciences                   Psychology &amp; Social Work           
+## [15] Arts                                Business                           
+## 16 Levels: Agriculture &amp; Natural Resources Arts ... Social Science</code></pre>
 <p>The remainder of the columns show the count of college graduates that are employed, unemployed as well as quartile levels of earnings.</p>
-<pre class="r"><code>colnames(dataset)
-##  [1] &quot;Major_code&quot;                    &quot;Major&quot;                        
+<pre><code>##  [1] &quot;Major_code&quot;                    &quot;Major&quot;                        
 ##  [3] &quot;Major_category&quot;                &quot;Total&quot;                        
 ##  [5] &quot;Employed&quot;                      &quot;Employed_full_time_year_round&quot;
 ##  [7] &quot;Unemployed&quot;                    &quot;Unemployment_rate&quot;            
@@ -36,36 +34,61 @@ tags: ["R Markdown", "plot", "regression"]
 </div>
 <div id="basic-data-understanding" class="section level1">
 <h1>Basic Data Understanding</h1>
-<p>Let’s begin the basic analysis with some plots.</p>
-<pre class="r"><code>dataset %&gt;%
-  ggplot(aes(Employed, Major_category)) + geom_boxplot()</code></pre>
-<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>Let’s begin the basic analysis with some plots.
+<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
 <p>I took one look at this graph and immidiatly realize how useless it was. Because the number of people surveyed in each major was not constant, the results from the plot were meaningless. We will add another column which will have the percentage employed and then plot that.</p>
-<pre class="r"><code>dataset &lt;- dataset %&gt;%
-  mutate(pct_employed = Employed / Total * 100)
-
-dataset %&gt;%
-  ggplot(aes(pct_employed, Major_category)) + geom_boxplot()</code></pre>
 <p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" width="672" />
 Now this plot tells us much more. Immediately I notice the wide spread, and significantly skewed low employment in the education major category.</p>
-<p>Next I want to look at a few majors individually and see how the employment distributes.</p>
-<pre class="r"><code>dataset %&gt;%
-  ggplot(aes(pct_employed)) + geom_histogram()
-## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p>Let’s also take a look at how employment is distributed across all majors and categories.</p>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
 <p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
-<div id="major-category-vs-employment-rate" class="section level2">
-<h2>Major Category VS Employment Rate</h2>
-</div>
-<div id="major-category-vs-median-income" class="section level2">
-<h2>Major Category VS Median Income</h2>
-</div>
-</div>
-<div id="data-vizulization" class="section level1">
-<h1>Data Vizulization</h1>
+<p>The chart appears to be mostly normal with a very slight right skew. Now lets also take a look at the distributions of employment percentage for Major Categories.</p>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-2.png" width="672" /></p>
+<p>We can tell these samples for individual major categories are quite small, so any statistical analysis we do will need to be done cautiously. This being said, with the small samples they appear to follow a very normal pattern.</p>
 </div>
 <div id="does-employment-vary-by-major" class="section level1">
 <h1>Does Employment Vary by Major?</h1>
+<p>Now that we have a good understanding of our dataset it is now time to do some proper statistical testing on the dataset. We wish to confirm</p>
+<div id="assumptions" class="section level2">
+<h2>Assumptions</h2>
+<p>The ANOVA test assumes that the data are normally distributed and the variance across groups are homogeneous.</p>
+<p>We assume that the data overall and in its categories is approximately normally distributed from the plots we observed earlier.</p>
+<p>To check for varience between groups we can use Levene’s test.</p>
+<pre><code>## Levene&#39;s Test for Homogeneity of Variance (center = median)
+##        Df F value Pr(&gt;F)
+## group  15  1.2911 0.2135
+##       157</code></pre>
+<p>From the output above we can see that the p-value is not less than the significance level of 0.05. This means that there is no evidence to suggest that the variance across groups is statistically significantly different. Therefore, we can assume the homogeneity of variances in the major category groups.</p>
+</div>
+<div id="anova-test" class="section level2">
+<h2>ANOVA Test</h2>
+<pre><code>##                 Df Sum Sq Mean Sq F value   Pr(&gt;F)    
+## Major_category  15   3254  216.92   5.081 4.03e-08 ***
+## Residuals      157   6703   42.69                     
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>We can see from the results of our One-way ANOVA test that p-value (4.03e-08) is smaller than the significance level and we can reject the null hypothesis. We accept the alternative hypothesis that there is a difference between the means of employment percentage and major category.</p>
+</div>
+<div id="tukey-test" class="section level2">
+<h2>Tukey Test</h2>
+<p>We can further find the category means which differ the most that lead to a small ANOVA p-value.</p>
+<pre><code>## # A tibble: 11 x 5
+##    contrast                              estimate conf.low conf.high adj.p.value
+##    &lt;chr&gt;                                    &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;       &lt;dbl&gt;
+##  1 Education-Agriculture &amp; Natural Reso…   -12.1   -21.3      -2.95  0.000907   
+##  2 Education-Arts                          -10.7   -20.6      -0.852 0.0193     
+##  3 Education-Biology &amp; Life Science         -8.52  -16.9      -0.195 0.0390     
+##  4 Education-Business                      -15.2   -23.7      -6.66  0.000000526
+##  5 Humanities &amp; Liberal Arts-Business      -10.7   -19.3      -2.09  0.00273    
+##  6 Education-Communications &amp; Journalism   -15.3   -28.0      -2.55  0.00476    
+##  7 Education-Computers &amp; Mathematics       -16.7   -25.6      -7.80  0.000000102
+##  8 Humanities &amp; Liberal Arts-Computers …   -12.3   -21.3      -3.23  0.000540   
+##  9 Psychology &amp; Social Work-Computers &amp;…   -11.3   -21.5      -1.05  0.0160     
+## 10 Engineering-Education                     9.32    2.23     16.4   0.000997   
+## 11 Law &amp; Public Policy-Education            12.0     0.318    23.6   0.0375</code></pre>
+</div>
 </div>
 <div id="conclusion" class="section level1">
 <h1>Conclusion</h1>
+<p>Given all of the plots and the ANOVA test we can confidentially say that the percentage of graduates who are employed does depend on Major Category.</p>
 </div>

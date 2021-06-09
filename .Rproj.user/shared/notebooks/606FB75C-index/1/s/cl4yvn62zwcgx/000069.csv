@@ -1,0 +1,4 @@
+"0","turkey_result <- tidy(TukeyHSD(anova_result))"
+"0","turkey_result %>%"
+"0","  filter(adj.p.value <= .05) %>%"
+"0","  select(contrast, estimate, conf.low, conf.high, adj.p.value)"

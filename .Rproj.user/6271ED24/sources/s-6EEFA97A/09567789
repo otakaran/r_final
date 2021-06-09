@@ -3,7 +3,7 @@
     "path": "~/cs/331/final/final_project/content/post/2021-06-07-colleges-data-analysis/index.Rmd",
     "project_path": "content/post/2021-06-07-colleges-data-analysis/index.Rmd",
     "type": "r_markdown",
-    "hash": "0",
+    "hash": "1615485456",
     "contents": "",
     "dirty": false,
     "created": 1623130511071.0,
@@ -12,17 +12,17 @@
     "properties": {
         "source_window_id": "",
         "Source": "Sourcebmjpzqptii85",
-        "cursorPosition": "63,46",
-        "scrollLine": "57",
-        "last_setup_crc32": "6EEFA97A67da8f2b",
+        "cursorPosition": "126,135",
+        "scrollLine": "109",
+        "last_setup_crc32": "6EEFA97A4f978ee1",
         "ignored_words": "dataset\n"
     },
     "folds": "",
-    "lastKnownWriteTime": 1623206597,
+    "lastKnownWriteTime": 1623216806,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1623206597024,
+    "last_content_update": 1623216806911,
     "read_only": false,
     "read_only_alternatives": []
 }
