@@ -1,5 +1,5 @@
 ---
-title: "TEst Post"
+title: "College Graduate Employment by Major"
 author: "Otakar Andrysek"
 date: 2021-06-07T21:13:14-05:00
 categories: ["R"]
@@ -8,30 +8,77 @@ tags: ["R Markdown", "plot", "regression"]
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = TRUE)
+library(knitr)
+library(rmdformats)
+library(tidyverse)
+library(broom)
 ```
 
-# R Markdown
+# Introduction
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+The purpose of this analysis is to understand employment trends by major.
 
-You can embed an R code chunk like this:
+The data-set selected is available online <https://www.kaggle.com/tunguz/college-majors?select=all-ages.csv>. We will be looking into the all-ages.csv file which shows employment information for all college graduates, regardless of age from the US census. This data was used in a [FiveThirtyEight article](https://fivethirtyeight.com/features/the-economic-guide-to-picking-a-college-major/).
 
-```{r cars}
-summary(cars)
-fit <- lm(dist ~ speed, data = cars)
-fit
+```{r}
+dataset <- read.csv(here::here("data", "all-ages.csv"))
 ```
 
-# Including Plots
+The dataset was imported locally and is some summary information to get acquainted with the data. The first column contains the exact name of the major, the second column contains 16 major "categories" which will be used thought this analysis. The categories are:
 
-You can also embed plots. See Figure \@ref(fig:pie) for example:
-
-```{r pie, fig.cap='A fancy pie chart.', tidy=FALSE}
-par(mar = c(0, 1, 0, 1))
-pie(
-  c(280, 60, 20),
-  c('Sky', 'Sunny side of pyramid', 'Shady side of pyramid'),
-  col = c('#0292D8', '#F7EA39', '#C4B632'),
-  init.angle = -50, border = NA
-)
+```{r}
+unique(dataset$Major_category)
 ```
+
+The remainder of the columns show the count of college graduates that are employed, unemployed as well as quartile levels of earnings.
+
+```{r}
+colnames(dataset)
+```
+
+Onwards!
+
+
+# Basic Data Understanding
+Let's begin the basic analysis with some plots.
+```{r}
+dataset %>%
+  ggplot(aes(Employed, Major_category)) + geom_boxplot()
+```
+
+I took one look at this graph and immidiatly realize how useless it was. Because the number of people surveyed in each major was not constant, the results from the plot were meaningless. We will add another column which will have the percentage employed and then plot that.
+
+```{r}
+dataset <- dataset %>%
+  mutate(pct_employed = Employed / Total * 100)
+
+dataset %>%
+  ggplot(aes(pct_employed, Major_category)) + geom_boxplot()
+```
+Now this plot tells us much more. Immediately I notice the wide spread, and significantly skewed low employment in the education major category. 
+
+Next I want to look at a few majors individually and see how the employment distributes. 
+
+```{r}
+dataset %>%
+  ggplot(aes(pct_employed)) + geom_histogram()
+```
+
+
+## Major Category VS Employment Rate
+
+
+
+## Major Category VS Median Income
+
+
+# Data Vizulization
+
+
+
+# Does Employment Vary by Major?
+
+
+
+
+# Conclusion

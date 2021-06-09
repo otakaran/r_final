@@ -1,0 +1,211 @@
+---
+title: "Lab 9"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::html_clean:
+    highlight: kate
+---
+
+
+```{r setup, include=FALSE}
+library(knitr)
+library(rmdformats)
+library(tidyverse)
+library(broom)
+
+## Global options
+options(max.print="75")
+opts_chunk$set(echo=TRUE,
+	             cache=TRUE,
+               prompt=FALSE,
+               tidy=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+opts_knit$set(width=75)
+```
+
+```{r}
+dataset <- read.csv(here::here("data", "babies_ca.csv"))
+```
+
+
+# The Data
+
+**Our dataset in this lab concerns baby names and their popularity over time. The dataset babies_ca has information about baby names in California from 1940-2016. For each year, and for each name with at least 50 recorded babies born, we are given the counts of how many babies had that name. At this link, you can find the names for ALL 50 states, in separate datasets organized by first letter.**
+
+
+# Is my name not cool any more?
+
+*Let’s take a look at how the name “Kelly” has changed over time.*
+
+
+**Make a plot showing the number of babies named “Kelly” born each year in CA.**
+
+```{r}
+kelly_data <- dataset %>% 
+  filter(Name == "Kelly") %>%
+  select(Gender, Year, Count) %>%
+  pivot_wider(names_from = Gender, values_from = Count) %>%
+  mutate(Total = F + M)
+
+kelly_data %>% 
+  ggplot(aes(x = Year, y= Total)) + 
+    geom_line() +
+    ggtitle("Popularity of Children in CA being named 'Kelly' Over Time") + 
+    xlab("Year") + ylab("Name Usage (Male and Famale)")
+
+```
+
+
+**Color the plot to show the gender assigned at birth to these babies.**
+
+```{r}
+kelly_data %>% 
+  ggplot(aes(x = Year)) + 
+    geom_line(aes(y = M, colour = "Male")) +
+    geom_line(aes(y = F, colour = "Female")) +
+    ggtitle("Popularity of Children in CA being named 'Kelly' Over Time") + 
+    xlab("Year") + ylab("Name Usage (Male and Famale)") +
+    scale_colour_manual("", breaks = c("Male", "Female"),
+                            values = c("blue", "red"))
+
+```
+
+
+**I was born in 1989. Let’s look at only the time frame since I was named. Narrow down the dataset to only 1989 onward.**
+
+```{r}
+kelly_data_narrowed <- kelly_data %>%
+  filter(Year >= 1989)
+```
+
+
+**Create a linear model with the year as the explanatory variable, and the number of Kellys as the response. Summarize the results, and plot the model.**
+
+```{r}
+my_model <- kelly_data_narrowed %>%
+  lm(Total ~ Year, data = .)
+
+summary(my_model)
+broom::tidy(my_model)
+
+kelly_data_narrowed %>%
+  ggplot(aes(x = Year, y = Total)) +
+    geom_point() +
+    stat_smooth(method = "lm") +
+    ggtitle("Kelly Name Popularity in CA 1989 Onwards with Linear Fit") + 
+    xlab("Year") + ylab("Name Usage (Male and Famale)")
+```
+
+
+**Plot the residuals: that is, the actual values minus the predicted values. (The function add_predictions in the modelr package may be useful to you.)**
+
+*Comment on the residuals - do you see any patterns?*
+
+```{r}
+my_model %>% 
+  augment() %>%
+  ggplot(aes(x = Year, y = Total)) +
+      geom_smooth(method = "lm", se = FALSE, color = "black") +
+      geom_segment(aes(xend = Year, yend = .fitted), alpha = .3) +
+      geom_point(aes(alpha = abs(.resid))) +
+      guides(alpha = FALSE) +
+      geom_point(aes(y = .fitted), shape = 1) +
+      ggtitle("Residuals of Linear Model for Popularity of the Name 'Kelly'") + 
+      xlab("Year") + ylab("Best Fit Line and Residuals")
+plot(my_model)
+```
+
+I do not see any extremely obvious trends. Just to be speculative it appears that the model is underestimating the name usage in the past few years.
+
+
+**Now include Gender in the model. Plot the model and the residuals, and comment on any patterns in the residuals.**
+
+```{r}
+new_data <- dataset %>% 
+  filter(Name == "Kelly") %>%
+  select(Gender, Year, Count) %>%
+  filter(Year >= 1989)
+
+newmod <- new_data %>% 
+  lm(Count ~ Year*Gender, data = .)
+
+summary(newmod)
+broom::tidy(newmod)
+
+plot(newmod)
+
+new_data %>%
+  ggplot(aes(x = Year, y = Count, fill = Gender)) +
+    geom_point() +
+    geom_smooth(method = "lm")
+```
+
+It appears even more noticeable now that in the past few years the usage of the name 'Kelly' for females is increasing. Otherwise in general the residuals do not follow any major trends and tend to fluctuate around the linear best fit line.
+
+**What do you conclude from this model?**
+
+From the pots and printouts of this model it is safe to conclude that the popularity of the name 'Kelly' has been decreasing since the year 1989.
+
+
+# Spelling by state
+
+*I used to hate it when people would spell my name as “Kelli” or “Kelley”. But I don’t have it as bad as my good friend Allan.*
+
+**Narrow the California dataset down to only male-assigned babies named “Allan”, “Alan”, or “Allen”. Make a plot comparing the popularity of these names over time.**
+
+```{r}
+dataset_ca <- dataset %>% 
+  filter(Gender == "M") %>%
+  filter(Name == "Allan" | Name == "Alan" | Name == "Allen") %>%
+  select(Name, Gender, Year, Count)
+
+dataset_ca %>%
+  ggplot(aes(x=Year, y = Count, group=Name, color = Name)) + 
+    geom_line()
+```
+
+
+**In California, Allan’s spelling of his name is the least common of the three - but perhaps it’s not such an unusual name for his home state of Pennsylvania. Compute the total number of babies born with each spelling of “Allan” in 2000, in Pennsylvania and in California.**
+
+```{r}
+dataset_ca <- dataset_ca %>%
+  filter(Year == 2000) %>%
+  select(Name, Count) %>%
+  arrange(Name)
+
+dataset_pa <- read.csv(here::here("data", "StateNames_A.csv")) %>%
+  filter(State == "PA", Year == 2000) %>%
+  filter(Name == "Allan" | Name == "Alan" | Name == "Allen") %>%
+  select(Name, Count) %>%
+  arrange(Name)
+
+dataset_ca
+dataset_pa
+```
+
+**Convert your total counts to overall percents. That is, what was the percent breakdown between the three spellings in CA? What about in PA?**
+
+```{r}
+dataset_ca <- dataset_ca %>%
+  mutate(pct = Count / sum(dataset_ca$Count) * 100)
+dataset_pa <- dataset_pa %>%
+  mutate(pct = Count / sum(dataset_pa$Count) * 100)
+
+dataset_ca
+dataset_pa
+```
+
+**Perform a Chi-Square test on this data, to determine if CA and PA have different distributions of spellings of “Allan”.**
+
+```{r}
+dataset_pa
+my_table <- tibble(dataset_ca$Name, dataset_ca$Count, dataset_pa$Count)
+
+my_table
+my_table[,-1]
+chisq.test(my_table[,-1])
+```
+
+Because of the small p-value is appears that CA and PA do have different distributions of spellings of "Allan".

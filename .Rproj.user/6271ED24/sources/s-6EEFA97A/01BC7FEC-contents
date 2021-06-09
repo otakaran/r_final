@@ -1,0 +1,62 @@
+---
+title: "Midterm Part 2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(stringr)
+```
+
+
+## Question 1
+```{r}
+get_footnotes <- function(vec) {
+  stopifnot(is.vector(vec))
+  stopifnot(is.character(vec))
+  str_extract_all(vec, "\\([\\w-,]*?\\)")
+}
+
+# Given Test from Midterm
+vec <- c("1.01 - 1.02 (b)", "4.24 - 6.7 (c,b)", "1.5 (a) - 2.4 (d-f)")
+
+get_footnotes(vec)
+```
+```{r}
+# Additional Tests
+vec2 <- c("1.01 - 1.02 (b-f,h,i,j-k,m-w,z)", "4.24 - 6.7 (c,b,d)", "1.5 (a) - 2.4 (d-f) - 9.9 (e-k) - 12.14 (o-q,s)")
+not_a_vec <- matrix(1:12, nrow = 3)
+
+get_footnotes(vec2)
+# This should return an error
+#get_footnotes(not_a_vec)
+```
+
+## Question 2
+```{r}
+get_nums <- function(vec) {
+  stopifnot(is.vector(vec))
+  stopifnot(is.character(vec))
+  first.num <- as.double(str_extract(vec, "^[\\d\\.]*"))
+  last.num <- as.double(str_extract(vec, "[\\d\\.]*(?= \\([\\w-,]*\\)?$)"))
+  
+  if (length(first.num) != length(last.num)) {
+    stop("An error occured and vectors for first and last num do not share a common length.")
+  }
+  
+  data.frame(first.num, last.num, row.names = 1:length(first.num))
+}
+
+# Test given from Midterm
+get_nums(vec)
+```
+
+```{r}
+# Additional Tests
+get_nums(vec2)
+vec3 <- "11.111 - 12.1212 (b-f,h,i)"
+get_nums(vec3)
+# This should return an error
+#get_nums(not_a_vec)
+```
+

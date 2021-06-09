@@ -1,0 +1,203 @@
+---
+title: "Lab 8"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::html_clean:
+    highlight: kate
+---
+
+
+```{r setup, include=FALSE}
+library(knitr)
+library(rmdformats)
+library(tidyverse)
+
+## Global options
+options(max.print="75")
+opts_chunk$set(echo=TRUE,
+	             cache=TRUE,
+               prompt=FALSE,
+               tidy=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+opts_knit$set(width=75)
+```
+
+
+***
+## The Data
+
+***
+**1. Import the data, and narrow it down to only the 2014 observations. **
+
+- If you are using read.csv(), you will want to use the option header = TRUE
+- Missing data in this dataset is labeled "Not Provided" or "Not provided" or is blank. You will want to replace these values with NAs. Use the arguments na.strings in read.csv() or na in read_csv.
+
+```{r}
+salaries <- read.csv(here::here("data", "SF_Salaries_sub.csv"), header = TRUE, na.strings = c("Not provided", "Not Provided", ""))
+salaries <- salaries %>%
+  filter(Year==2014)
+```
+
+***
+**2. Our variable of interest for this lab is going to be Total Pay. Plot a histogram of Total Pay with an overlaying density. (Reference the previous lab if you don’t remember how to do this!) Comment briefly on the shape, center, and spread.**
+
+```{r}
+ggplot(salaries, aes(salaries$TotalPay)) + 
+  geom_histogram(bins = 40, aes(y = ..density..), col = "black") + 
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  scale_y_continuous(labels = function(y) format(y, scientific = FALSE)) +
+  ggtitle("Histogram of Total Pay for San Francisco") +
+  ylab("Density") + xlab("Total Pay")
+```
+
+***
+**3. Suppose we’re interested in making inference about the typical salary (Total Pay) of all San Francisco city employees in 2014, and this is our representative sample. Is the mean a good statistic to use here to describe the typical value of salary? Why or why not?**
+
+No, the mean is not a good measurement of representing the typical salary. This is because it is easily skewed by outlying data points. In this case the individuals with extremely high paying jobs would greatly increase the mean, yet the super success of one individual should not have this much of an affect on the entire population. 
+
+***
+**4. Recall that a one-sample t-test requires that the sample mean is approximately Normally distributed. Does this assumption seem reasonable for the mean Total Pay? Why or why not?**
+
+No this does not appear to be a valid assumption. Simply looking at the histogram the sample is already displaying evidence of being skewed right if not slightly bimodal. In a normal sample the mean and median would be the same, now I will check the mean and median of the sample.
+
+```{r}
+salaries %>%
+  summarise(mean = mean(TotalPay), median = median(TotalPay)) %>%
+  mutate(percent_difference = (median-mean) / median * 100)
+```
+There is approximately a 1% difference between the two statistics. Combining this with the histogram observation I would conclude that this sample is not normal.
+
+***
+**5. Find a 95% confidence interval for the mean Total Pay using the t distribution.**
+
+```{r}
+me <- qt(.975, (length(row(salaries))/length(salaries) - 1)) * (sd(salaries$TotalPay) / sqrt(length(row(salaries))/length(salaries)))
+
+range(mean(salaries$TotalPay) - me, mean(salaries$TotalPay) + me)
+```
+The confidence interval is from 72665.56 to 83295.50.
+
+***
+# Bootstrapping
+**6. Use the bootstrap procedure to construct a 95% bootstrap confidence interval for the mean Total Pay. Compare this interval to your t-interval in (3).**
+
+```{r}
+my_salaries <- salaries %>% 
+  modelr::bootstrap(1000)
+my_salaries <- my_salaries %>% 
+  mutate(means = map_dbl(strap, ~mean(data.frame(.x)$TotalPay)))
+
+quantile(my_salaries$means, c(0.025, 0.975))
+```
+The confidence intervals are very similar.
+
+***
+**7. Since the distribution of Total Pay is so skewed, there may be other statistics that are better at describing the typical salary. Write your own function for calculating the following two statistics. (You may have to Google what they mean! Feel free to use relevant code from previous labs.)**
+
+- Midhinge
+- Trimmed Mean (this should take two arguments: the data vector and the percent to trim)
+
+```{r}
+midhinge <- function(vec) {
+  stopifnot(is.vector(vec))
+  q1 <- quantile(vec, .25)
+  q3 <- quantile(vec, .75)
+  return(unname((q1 + q3) / 2))
+}
+
+trimmed_mean <- function(vec, trim_pct) {
+  stopifnot(is.vector(vec))
+  stopifnot(is.numeric(trim_pct))
+  stopifnot(trim_pct > 0 & trim_pct < 1)
+  mean(vec, trim=trim_pct)
+}
+```
+
+***
+**8. Perform the bootstrap procedure to make 95% confidence intervals for the following statistics for Total Pay:**
+
+- Midhinge
+- 5% Trimmed Mean
+- 10% Trimmed Mean
+- 25% Trimmed Mean
+- Median
+
+```{r}
+my_salaries <- salaries %>% 
+  modelr::bootstrap(1000)
+my_salaries <- my_salaries %>% 
+  mutate(
+    means = map_dbl(strap, ~mean(data.frame(.x)$TotalPay)),
+    midhinges = map_dbl(strap, ~midhinge(data.frame(.x)$TotalPay)),
+    trim_5 = map_dbl(strap, ~trimmed_mean(data.frame(.x)$TotalPay, .05)),
+    trim_10 = map_dbl(strap, ~trimmed_mean(data.frame(.x)$TotalPay, .10)),
+    trim_25 = map_dbl(strap, ~trimmed_mean(data.frame(.x)$TotalPay, .25)),
+    medians = map_dbl(strap, ~median(data.frame(.x)$TotalPay))
+  )
+
+midhinge_ci <- quantile(my_salaries$midhinges, c(0.025, 0.975))
+trim_5_ci <- quantile(my_salaries$trim_5, c(0.025, 0.975))
+trim_10_ci <- quantile(my_salaries$trim_10, c(0.025, 0.975))
+trim_25_ci <- quantile(my_salaries$trim_25, c(0.025, 0.975))
+median_ci <- quantile(my_salaries$medians, c(0.025, 0.975))
+
+midhinge_ci
+trim_5_ci
+trim_10_ci
+trim_25_ci
+median_ci
+```
+
+***
+**9. For each of the statistics in (8), make a plot with a histogram of bootstrapped values and the 95% confidence interval cutoffs.**
+
+```{r}
+ggplot(my_salaries, aes(my_salaries$midhinges)) + 
+  geom_histogram(bins = 40, aes(y = ..density..), col = "black") + 
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  scale_y_continuous(labels = function(y) format(y, scientific = FALSE)) +
+  ggtitle("Histogram of Midhinges for Total Pay Samples") +
+  ylab("Density") + xlab("Total Pay") +
+  geom_vline(xintercept = midhinge_ci, color = "blue", size = 2)
+
+ggplot(my_salaries, aes(my_salaries$trim_5)) + 
+  geom_histogram(bins = 40, aes(y = ..density..), col = "black") + 
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  scale_y_continuous(labels = function(y) format(y, scientific = FALSE)) +
+  ggtitle("Histogram of 5% Trimmed Mean for Total Pay Samples") +
+  ylab("Density") + xlab("Total Pay") +
+  geom_vline(xintercept = trim_5_ci, color = "blue", size = 2)
+
+ggplot(my_salaries, aes(my_salaries$trim_10)) + 
+  geom_histogram(bins = 40, aes(y = ..density..), col = "black") + 
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  scale_y_continuous(labels = function(y) format(y, scientific = FALSE)) +
+  ggtitle("Histogram of 10% Trimmed Mean for Total Pay Samples") +
+  ylab("Density") + xlab("Total Pay") +
+  geom_vline(xintercept = trim_10_ci, color = "blue", size = 2)
+
+ggplot(my_salaries, aes(my_salaries$trim_25)) + 
+  geom_histogram(bins = 40, aes(y = ..density..), col = "black") + 
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  scale_y_continuous(labels = function(y) format(y, scientific = FALSE)) +
+  ggtitle("Histogram of 25% Trimmed Mean for Total Pay Samples") +
+  ylab("Density") + xlab("Total Pay") +
+  geom_vline(xintercept = trim_25_ci, color = "blue", size = 2)
+
+ggplot(my_salaries, aes(my_salaries$medians)) + 
+  geom_histogram(bins = 40, aes(y = ..density..), col = "black") + 
+  scale_x_continuous(labels = function(x) format(x, scientific = FALSE)) +
+  scale_y_continuous(labels = function(y) format(y, scientific = FALSE)) +
+  ggtitle("Histogram of Medians for Total Pay Samples") +
+  ylab("Density") + xlab("Total Pay") +
+  geom_vline(xintercept = median_ci, color = "blue", size = 2)
+```
+
+***
+**10. Which of these statistics do you think is the best statistic to describe the typical salary? Why? (There is no single write answer to this question. Think about what each statistic is measuring, and decide whether that makes sense for this data.)**
+
+I believe that the median is the best measure of the typical salary. Due to the heavy skew of the data both in terms of a large number of very small salaries, and very large salaries. Neither of these group shows heavily skew the overall "typical" salary. Each individual should have an equal value in representing the "typical", as a result the median is the best statistic in my opinion.
+
+***

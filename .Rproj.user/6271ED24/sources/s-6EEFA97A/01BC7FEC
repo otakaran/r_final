@@ -1,26 +1,26 @@
 {
-    "id": "CC4486D2",
-    "path": "~/cs/331/final/final_project/config.yaml",
-    "project_path": "config.yaml",
-    "type": "yaml",
+    "id": "01BC7FEC",
+    "path": "~/cs/331/week6/midterm/part2.Rmd",
+    "project_path": null,
+    "type": "r_markdown",
     "hash": "0",
     "contents": "",
     "dirty": false,
-    "created": 1623102049403.0,
+    "created": 1623189377959.0,
     "source_on_save": false,
-    "relative_order": 2,
+    "relative_order": 11,
     "properties": {
         "source_window_id": "",
         "Source": "Sourcebmjpzqptii85",
-        "cursorPosition": "31,7",
-        "scrollLine": "0"
+        "cursorPosition": "40,42",
+        "scrollLine": "8"
     },
     "folds": "",
-    "lastKnownWriteTime": 1623132436,
+    "lastKnownWriteTime": 1620365724,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1623132436472,
+    "last_content_update": 1620365724,
     "read_only": false,
     "read_only_alternatives": []
 }
