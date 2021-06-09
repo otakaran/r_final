@@ -1,26 +1,26 @@
 {
-    "id": "A94BE2F2",
-    "path": "~/cs/331/week10/lab9/lab9/lab9.Rmd",
+    "id": "E9C5CB86",
+    "path": "~/cs/331/week8/lab7/lab7/lab7.Rmd",
     "project_path": null,
     "type": "r_markdown",
     "hash": "0",
     "contents": "",
     "dirty": false,
-    "created": 1623180721729.0,
+    "created": 1623218520722.0,
     "source_on_save": false,
-    "relative_order": 8,
+    "relative_order": 12,
     "properties": {
         "source_window_id": "",
         "Source": "Sourcebmjpzqptii85",
-        "cursorPosition": "70,54",
-        "scrollLine": "47"
+        "cursorPosition": "78,63",
+        "scrollLine": "53"
     },
     "folds": "",
-    "lastKnownWriteTime": 1623048935,
+    "lastKnownWriteTime": 1621836065,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1623048935,
+    "last_content_update": 1621836065,
     "read_only": false,
     "read_only_alternatives": []
 }

@@ -1,0 +1,5 @@
+"0","dataset %>%"
+"0","  ggplot(aes(Employed, Major_category, color = Major_category)) + "
+"0","    geom_boxplot() +"
+"0","    ggtitle(""Number of Graduates Employed by College Major Category"") + "
+"0","    xlab(""Number Employed"") + ylab(""Major Category"") + theme(legend.position = ""none"")"

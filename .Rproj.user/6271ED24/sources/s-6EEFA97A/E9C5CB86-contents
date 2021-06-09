@@ -1,0 +1,256 @@
+---
+title: "Lab 7"
+date: "`r Sys.Date()`"
+output:
+  rmdformats::html_clean:
+    highlight: kate
+---
+
+
+```{r setup, include=FALSE}
+library(knitr)
+library(rmdformats)
+library(tidyverse)
+
+## Global options
+options(max.print="75")
+opts_chunk$set(echo=TRUE,
+	             cache=TRUE,
+               prompt=FALSE,
+               tidy=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE)
+opts_knit$set(width=75)
+```
+
+# Introduction
+
+In your coursework, you learned a bit about the Central Limit Theorem.
+
+In this lab, you will use simulation to illustrate this concept.
+
+
+# Part One: Summarize fake data
+
+**Create a new dataset containing four variables: one that comes from a Normal distribution, one from a Uniform distribution, one from a Binomial distribution, and one from an exponential distribution. You should not use the default options for these distributions; e.g., your Normal data should not have a mean of 0 or a standard deviation of 1, and your Binomial data should not have a probability of 0.5. Your data should have 30 rows. Feel free to make up silly names for your fake variables, and/or to add fake names or other labels to this dataset, if you are inspired.**
+
+```{r}
+number_of_rows = 30
+dataset <- data.frame(norm = rnorm(number_of_rows, mean = 100, sd = 10),
+                      unif = runif(number_of_rows, min = 10, max = 11),
+                      binom = rbinom(number_of_rows, size = 50, prob = .1),
+                      expo = rexp(number_of_rows, rate = 20))
+```
+
+
+**Calculate the mean and standard deviation for each of your four variables.**
+```{r}
+dataset %>%
+  summarise(across(everything(), c(mean=mean, sd=sd)))
+```
+
+**Now repeat steps (1) and (2), using the same distributions, but instead make 1000 rows in your dataset.**
+
+```{r}
+number_of_rows = 1000
+dataset_1000 <- data.frame(norm = rnorm(number_of_rows, mean = 100, sd = 10),
+                      unif = runif(number_of_rows, min = 10, max = 11),
+                      binom = rbinom(number_of_rows, size = 50, prob = .1),
+                      expo = rexp(number_of_rows, rate = 20))
+dataset_1000 %>%
+  summarise(across(everything(), c(mean=mean, sd=sd)))
+```
+
+
+**Comment on the means and standard deviations in this section, as compared to in (2).**
+
+I observe that for the data with more rows the mean and standard deviations are closer to what they should be based on the given distribution. For example the normal mean and standard deviations for the 1000 sample dataset is much closer to 100, and 10, respectively then for the 30 sample dataset. This pattern is consistent with the other distributions as well.
+
+**Make a histogram for each of your four variables, with the underlying distribution overlayed on top.**
+
+```{r}
+norm_sample <- data.frame(x = dataset_1000$norm)
+unif_sample <- data.frame(x = dataset_1000$unif)
+binom_sample <- data.frame(x = dataset_1000$binom)
+expo_sample <- data.frame(x = dataset_1000$expo)
+
+ggplot(norm_sample, aes(x)) + 
+  geom_histogram(bins = 50, aes(y = ..density..), col = "black") + 
+  stat_function(geom = "line", fun = ~dnorm(.x, mean = 100, sd = 10), col = "blue", lwd = 2) +
+  ggtitle("Normal Sample Density Histogram")
+
+ggplot(unif_sample, aes(x)) + 
+  geom_histogram(bins = 50, aes(y = ..density..), col = "black") + 
+  stat_function(geom = "line", fun = ~dunif(.x, min = 10, max = 11), col = "blue", lwd = 2) +
+  ggtitle("Uniform Sample Density Histogram")
+
+ggplot(binom_sample, aes(x)) + 
+  geom_histogram(bins = 10, aes(y = ..density..), col = "black") + 
+  stat_function(geom = "line", fun = ~dbinom(.x, size = 50, prob = .1), col = "blue", lwd = 2) +
+  ggtitle("Binomial Sample Density Histogram")
+
+ggplot(expo_sample, aes(x)) + 
+  geom_histogram(bins = 50, aes(y = ..density..), col = "black") + 
+  stat_function(geom = "line", fun = ~dexp(.x, rate = 20), col = "blue", lwd = 2) +
+  ggtitle("Exponential Sample Density Histogram")
+```
+
+
+# Part Two: Generating sample means
+
+**Write a function called sample_mean. This function should take as input a vector vec and an integer n. It should take a random sample of size n from vec, then calculate and return the mean of that subsample.**
+```{r}
+sample_mean <- function(vec, n){
+  # Check variable inputs
+  if (!is.vector(vec)) { stop("vec is not a vector") }
+  if (!is.numeric(n) & n >= 0) { stop("n is not an integer") }
+
+  return(mean(sample(vec, n, replace = TRUE)))
+}
+```
+
+**Write a function called many_sample_means. This function should take as input a vector vec, an integer n, and an integer reps. It should perform the sample_mean process many times (reps) and return a vector of the results.**
+```{r}
+many_sample_means <- function(vec, n, reps){
+  # Check variable inputs
+  if (!is.vector(vec)) { stop("vec is not a vector") }
+  if (!is.numeric(n) & n >= 0) { stop("n is not an integer") }
+  if (!is.numeric(reps) & reps >= 0) { stop("reps is not an integer") }
+  
+  result = NULL
+  for (i in 1:reps) { result = append(result, sample_mean(vec, n)) }
+  return(result)
+}
+```
+
+**Write a function called sample_means_ns. This function should take as input a vector vec and an integer reps, and a vector ns. It should perform the many_sample_means process for each of the values in the ns vector. It should return a data frame with the results.**
+```{r}
+sample_means_ns <- function(vec, reps, ns){
+  # Check variable inputs
+  if (!is.vector(vec)) { stop("vec is not a vector") }
+  if (!is.numeric(reps) & reps >= 0) { stop("reps is not an integer") }
+  if (!is.vector(ns)) { stop("ns is not an vector") }
+  
+  result = tibble(sample_mean = numeric(), n = numeric())
+  for (n in ns) { 
+    result <- result %>% add_row(sample_mean = many_sample_means(vec, n, reps), n = n)
+  }
+  return(result)
+}
+```
+
+**Include the following in your final R Markdown to show your functions work:**
+```{r}
+vec <- runif(100)
+
+sample_mean(vec, 50)
+many_sample_means(vec, reps = 10, n = 50)
+sample_means_ns(vec, reps = 10, ns = c(5, 50, 500))
+```
+
+# Part Three: Putting it all together
+
+## For any two of the four variables in your fake dataset from Part One, do the following:
+- **Use your many_sample_means function with reps = 1000 and n = 10. Make histograms of each of your results (no overlay required). Calculate the mean and standard deviation of each of your results.**
+
+```{r}
+normal_vec <- dataset$norm
+expo_vec <- dataset$expo
+
+normal_samples <- data.frame(x = many_sample_means(normal_vec, 10, 1000))
+expo_samples <- data.frame(x = many_sample_means(expo_vec, 10, 1000))
+
+ggplot(normal_samples, aes(x)) + 
+  geom_histogram(bins = 50, aes(y = ..density..), col = "black") +
+  ggtitle("Normal Sample Density Histogram")
+
+ggplot(expo_samples, aes(x)) + 
+  geom_histogram(bins = 50, aes(y = ..density..), col = "black") +
+  ggtitle("Exponential Sample Density Histogram")
+
+# Normal Data
+normal_samples %>%
+  summarise(across(everything(), c(mean=mean, sd=sd)))
+
+# Exponential Data
+expo_samples %>%
+  summarise(across(everything(), c(mean=mean, sd=sd)))
+```
+
+
+- **Use your many_sample_means function with reps = 1000 and n = 500. Make histograms of each of your results (no overlay required). Calculate the mean and standard deviation of each of your results.**
+
+```{r}
+normal_samples <- data.frame(x = many_sample_means(normal_vec, 500, 1000))
+expo_samples <- data.frame(x = many_sample_means(expo_vec, 500, 1000))
+
+ggplot(normal_samples, aes(x)) + 
+  geom_histogram(bins = 50, aes(y = ..density..), col = "black") +
+  ggtitle("Normal Sample Density Histogram")
+
+ggplot(expo_samples, aes(x)) + 
+  geom_histogram(bins = 50, aes(y = ..density..), col = "black") +
+  ggtitle("Exponential Sample Density Histogram")
+
+# Normal Data
+normal_samples %>%
+  summarise(across(everything(), c(mean=mean, sd=sd)))
+
+# Exponential Data
+expo_samples %>%
+  summarise(across(everything(), c(mean=mean, sd=sd)))
+```
+
+- **Comment on the differences or similarities between (1) and (2)**
+
+The most obvious difference is the much smaller standard deviation of the dataset with more samples. The means are very similar. The overall distribution of the data is quite different between these two data groups. The second group both charts appear to to show a more normal distribution.
+
+
+- **Use your sample_means_ns function to try a variety of values of n. Calculate the standard deviation of the results for each value of n. Make a plot that shows how the standard deviation of the sample means changes with n.**
+
+```{r}
+many_samples <- c(1, 2, 5, 10, 1:10 * 50, 750, 1000)
+normal_many_samples <- sample_means_ns(normal_vec, 1000, many_samples)
+expo_many_samples <- sample_means_ns(expo_vec, 1000, many_samples)
+
+normal_many_samples <- normal_many_samples %>%
+  group_by(n) %>%
+  summarise(mean = mean(sample_mean), sd = sd(sample_mean))
+normal_many_samples
+
+expo_many_samples <- expo_many_samples %>%
+  group_by(n) %>%
+  summarise(mean = mean(sample_mean), sd = sd(sample_mean))
+expo_many_samples
+
+ggplot(normal_many_samples, aes(x = n, y = sd)) + 
+  geom_line(lwd = 2) + geom_point(col = "blue", size = 3) +
+  ggtitle("Standard Deviation of Normal Samples by n")
+
+ggplot(expo_many_samples, aes(x = n, y = sd)) + 
+  geom_line(lwd = 2) + geom_point(col = "blue", size = 3) +
+  ggtitle("Standard Deviation of Exponential Samples by n")
+```
+
+
+# Part Four: Appreciate the CLT
+
+**You have been told that the amount of time you have to wait for a bus from Cal Poly to Downtown SLO is exponential(0.02); that is, that the true average wait time is about 50 minutes. You think this might be a lie. In the last 30 days, you have waited for the bus for 55 minutes on average. If the bus system is telling the truth about the exponential(0.02) distribution, how unlucky were you this month? Simulate 10000 random values from the exponential(0.02) distribution. Use your many_sample_means on these values, with n = 30 and reps = 1000. How many times did your sample mean exceed 55?**
+
+```{r}
+bus_times <- rexp(10000, rate = 0.02)
+bus_sample_means <- many_sample_means(bus_times, 30, 1000)
+sum(bus_sample_means > 55)
+```
+
+
+**Use the Central Limit Theorem to assume that a sample mean of exponentially distributed values is Normally distributed, with mean 50 and standard deviation 50/sqrt(n). Find the probability that a sample mean exceeds 55.**
+
+```{r}
+1- pnorm(55, 50, 50/sqrt(30))
+```
+
+**Comment on (1) and (2). Were the answers similar? Do you believe that bus wait times really are distributed exponential(0.02)?**
+
+Both values show very similar results, both methods shows that approximately 29% of sample means exceed 55 minutes. You were pretty unlucky this month but this is a very possible scenario of waiting for this bus line.

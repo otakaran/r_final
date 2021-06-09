@@ -1,5 +1,0 @@
-"0","dataset <- dataset %>%"
-"0","  mutate(pct_employed = Employed / Total * 100)"
-"0",""
-"0","dataset %>%"
-"0","  ggplot(aes(pct_employed, Major_category)) + geom_boxplot()"

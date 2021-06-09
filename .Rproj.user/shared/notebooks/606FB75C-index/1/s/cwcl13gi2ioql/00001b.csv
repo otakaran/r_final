@@ -1,0 +1,6 @@
+"0","dataset %>%"
+"0","  ggplot(aes(pct_employed)) + "
+"0","    geom_histogram(bins = 30, col = ""black"") + "
+"0","    ggtitle(""Percentage of Graduates Employed by College Major Category"") + "
+"0","    xlab(""Percentage Employed"") + ylab(""Major Category"") + "
+"0","    theme(legend.position = ""none"")"

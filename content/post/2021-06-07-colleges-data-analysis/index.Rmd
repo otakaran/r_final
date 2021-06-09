@@ -19,7 +19,9 @@ library(car)
 
 The purpose of this analysis is to understand employment trends by major.
 
-The data-set selected is [available online] (https://www.kaggle.com/tunguz/college-majors?select=all-ages.csv). We will be looking into the all-ages.csv file which shows employment information for all college graduates, regardless of age from the US census. This data was used in a [FiveThirtyEight article](https://fivethirtyeight.com/features/the-economic-guide-to-picking-a-college-major/).
+The data-set selected is [available online] (https://www.kaggle.com/tunguz/college-majors?select=all-ages.csv).
+
+We will be looking into the all-ages.csv file which shows employment information for all college graduates, regardless of age from the US census. This data was also used in a [FiveThirtyEight article!](https://fivethirtyeight.com/features/the-economic-guide-to-picking-a-college-major/).
 
 ```{r}
 dataset <- read.csv(here::here("data", "all-ages.csv")) %>%
@@ -38,32 +40,51 @@ The remainder of the columns show the count of college graduates that are employ
 colnames(dataset)
 ```
 
-Onwards!
+*Onwards!*
 
 
-# Basic Data Understanding
+# Basic Data Analysis
+
 Let's begin the basic analysis with some plots.
+
+## Boxplots
 ```{r}
 dataset %>%
-  ggplot(aes(Employed, Major_category)) + geom_boxplot()
+  ggplot(aes(Employed, Major_category, color = Major_category)) + 
+    geom_boxplot() +
+    ggtitle("Number of Graduates Employed by College Major Category") + 
+    xlab("Number Employed") + ylab("Major Category") + 
+    theme(legend.position = "none")
 ```
 
-I took one look at this graph and immidiatly realize how useless it was. Because the number of people surveyed in each major was not constant, the results from the plot were meaningless. We will add another column which will have the percentage employed and then plot that.
+Unfortunately, the graph above provides no useful information because it does not adjust the number of graduates employed by the total number of graduates for that major. 
+
+We will add a new column which will have the percentage result of the total number of graduates surveyed.
 
 ```{r}
 dataset <- dataset %>%
   mutate(pct_employed = Employed / Total * 100)
 
 dataset %>%
-  ggplot(aes(pct_employed, Major_category)) + geom_boxplot()
+  ggplot(aes(pct_employed, Major_category, color = Major_category)) + 
+    geom_boxplot() +
+    ggtitle("Percentage of Graduates Employed by College Major Category") + 
+    xlab("Percentage Employed") + ylab("Major Category") + 
+    theme(legend.position = "none")
 ```
 Now this plot tells us much more. Immediately I notice the wide spread, and significantly skewed low employment in the education major category. 
 
+
+## Data Distibution
 Let's also take a look at how employment is distributed across all majors and categories.
 
 ```{r}
 dataset %>%
-  ggplot(aes(pct_employed)) + geom_histogram()
+  ggplot(aes(pct_employed)) + 
+    geom_histogram(bins = 30) + 
+    ggtitle("Histogram of Percent Graduates Employed by Major") + 
+    xlab("Percent Employed") + ylab("Count") + 
+    theme(legend.position = "none")
 ```
 
 The chart appears to be mostly normal with a very slight right skew. Now lets also take a look at the distributions of employment percentage for Major Categories. 
@@ -71,11 +92,18 @@ The chart appears to be mostly normal with a very slight right skew. Now lets al
 ```{r}
 dataset %>%
   filter(Major_category == "Education") %>%
-  ggplot(aes(pct_employed)) + geom_histogram(bins = 9)
+  ggplot(aes(pct_employed)) + 
+    geom_histogram(bins = 9) +
+    ggtitle("Histogram of Percent Graduates Employed by Major in the Education Major Category") + 
+    xlab("Percent Employed") + ylab("Count") + 
+    theme(legend.position = "none")
   
 dataset %>%
   filter(Major_category == "Engineering") %>%
-  ggplot(aes(pct_employed)) + geom_histogram(bins = 9)
+    ggplot(aes(pct_employed)) + geom_histogram(bins = 9) +
+    ggtitle("Histogram of Percent Graduates Employed by Major in the Engineering Major Category") + 
+    xlab("Percent Employed") + ylab("Count") + 
+    theme(legend.position = "none")
 ```
 
 We can tell these samples for individual major categories are quite small, so any statistical analysis we do will need to be done cautiously. This being said, with the small samples they appear to follow a very normal pattern.
@@ -124,4 +152,4 @@ turkey_result %>%
 
 # Conclusion
 
-Given all of the plots and the ANOVA test we can confidentially say that the percentage of graduates who are employed does depend on Major Category. 
+Given the plots and the ANOVA test we can confidentially say that the percentage of graduates who are employed **does depend** on Major Category. 

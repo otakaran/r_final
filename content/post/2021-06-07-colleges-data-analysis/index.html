@@ -12,7 +12,8 @@ tags: ["R Markdown", "plot", "regression"]
 <div id="introduction" class="section level1">
 <h1>Introduction</h1>
 <p>The purpose of this analysis is to understand employment trends by major.</p>
-<p>The data-set selected is [available online] (<a href="https://www.kaggle.com/tunguz/college-majors?select=all-ages.csv" class="uri">https://www.kaggle.com/tunguz/college-majors?select=all-ages.csv</a>). We will be looking into the all-ages.csv file which shows employment information for all college graduates, regardless of age from the US census. This data was used in a <a href="https://fivethirtyeight.com/features/the-economic-guide-to-picking-a-college-major/">FiveThirtyEight article</a>.</p>
+<p>The data-set selected is [available online] (<a href="https://www.kaggle.com/tunguz/college-majors?select=all-ages.csv" class="uri">https://www.kaggle.com/tunguz/college-majors?select=all-ages.csv</a>).</p>
+<p>We will be looking into the all-ages.csv file which shows employment information for all college graduates, regardless of age from the US census. This data was also used in a <a href="https://fivethirtyeight.com/features/the-economic-guide-to-picking-a-college-major/">FiveThirtyEight article!</a>.</p>
 <p>The dataset was imported locally and is some summary information to get acquainted with the data. The first column contains the exact name of the major, the second column contains 16 major “categories” which will be used thought this analysis. The categories are:</p>
 <pre><code>##  [1] Agriculture &amp; Natural Resources     Biology &amp; Life Science             
 ##  [3] Engineering                         Humanities &amp; Liberal Arts          
@@ -30,21 +31,27 @@ tags: ["R Markdown", "plot", "regression"]
 ##  [7] &quot;Unemployed&quot;                    &quot;Unemployment_rate&quot;            
 ##  [9] &quot;Median&quot;                        &quot;P25th&quot;                        
 ## [11] &quot;P75th&quot;</code></pre>
-<p>Onwards!</p>
+<p><em>Onwards!</em></p>
 </div>
-<div id="basic-data-understanding" class="section level1">
-<h1>Basic Data Understanding</h1>
-<p>Let’s begin the basic analysis with some plots.
-<img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
-<p>I took one look at this graph and immidiatly realize how useless it was. Because the number of people surveyed in each major was not constant, the results from the plot were meaningless. We will add another column which will have the percentage employed and then plot that.</p>
+<div id="basic-data-analysis" class="section level1">
+<h1>Basic Data Analysis</h1>
+<p>Let’s begin the basic analysis with some plots.</p>
+<div id="boxplots" class="section level2">
+<h2>Boxplots</h2>
+<p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>Unfortunately, the graph above provides no useful information because it does not adjust the number of graduates employed by the total number of graduates for that major.</p>
+<p>We will add a new column which will have the percentage result of the total number of graduates surveyed.</p>
 <p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-5-1.png" width="672" />
 Now this plot tells us much more. Immediately I notice the wide spread, and significantly skewed low employment in the education major category.</p>
+</div>
+<div id="data-distibution" class="section level2">
+<h2>Data Distibution</h2>
 <p>Let’s also take a look at how employment is distributed across all majors and categories.</p>
-<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
 <p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
 <p>The chart appears to be mostly normal with a very slight right skew. Now lets also take a look at the distributions of employment percentage for Major Categories.</p>
 <p><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-1.png" width="672" /><img src="{{< blogdown/postref >}}index_files/figure-html/unnamed-chunk-7-2.png" width="672" /></p>
 <p>We can tell these samples for individual major categories are quite small, so any statistical analysis we do will need to be done cautiously. This being said, with the small samples they appear to follow a very normal pattern.</p>
+</div>
 </div>
 <div id="does-employment-vary-by-major" class="section level1">
 <h1>Does Employment Vary by Major?</h1>
@@ -90,5 +97,5 @@ Now this plot tells us much more. Immediately I notice the wide spread, and sign
 </div>
 <div id="conclusion" class="section level1">
 <h1>Conclusion</h1>
-<p>Given all of the plots and the ANOVA test we can confidentially say that the percentage of graduates who are employed does depend on Major Category.</p>
+<p>Given the plots and the ANOVA test we can confidentially say that the percentage of graduates who are employed <strong>does depend</strong> on Major Category.</p>
 </div>
